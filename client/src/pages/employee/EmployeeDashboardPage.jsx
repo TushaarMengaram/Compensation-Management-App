@@ -4,6 +4,7 @@ import { api, getErrorMessage } from '../../services/api.js';
 import { Spinner } from '../../components/Spinner.jsx';
 import { StatCard } from '../../components/StatCard.jsx';
 import { SalaryTimeline } from '../../components/SalaryTimeline.jsx';
+import { SalaryGrowthChart } from '../../components/SalaryGrowthChart.jsx';
 import { formatINR } from '../../utils/format.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -75,6 +76,30 @@ export function EmployeeDashboardPage() {
     if (!latestUpdate?.previousSalary || !latestUpdate?.newSalary) return null;
     return getPercentage(latestUpdate.previousSalary, latestUpdate.newSalary);
   }, [latestUpdate]);
+
+  const chartEntries = useMemo(() => {
+    const points = preparedHistory.map((item) => ({
+      salary: Number(item.newSalary || 0),
+      date: item.effectiveDate || item.appliedAt,
+    }));
+
+    if (!salary?.currentSalary) {
+      return points;
+    }
+
+    const latestSalaryPoint = points[points.length - 1];
+    if (!latestSalaryPoint || Number(latestSalaryPoint.salary) !== Number(salary.currentSalary)) {
+      return [
+        ...points,
+        {
+          salary: Number(salary.currentSalary),
+          date: salary.effectiveDate || new Date().toISOString(),
+        },
+      ];
+    }
+
+    return points;
+  }, [preparedHistory, salary]);
 
   const overviewItems = [
     {
@@ -164,7 +189,7 @@ export function EmployeeDashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
+      <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <div className="rounded-[2rem] border border-slate-200/90 bg-white/90 p-8 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950/80">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -208,14 +233,26 @@ export function EmployeeDashboardPage() {
 
         <div className="rounded-[2rem] border border-slate-200/90 bg-white/90 p-8 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950/80">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Salary growth timeline</h2>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Salary growth chart</h2>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              Visual progression of approved compensation changes over time.
+              Track salary progression through approved compensation changes.
             </p>
           </div>
           <div className="mt-8">
-            <SalaryTimeline entries={preparedHistory} />
+            <SalaryGrowthChart entries={chartEntries} currentSalary={salary?.currentSalary} />
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-slate-200/90 bg-white/90 p-8 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950/80">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Salary growth timeline</h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            Visual progression of approved compensation changes over time.
+          </p>
+        </div>
+        <div className="mt-8">
+          <SalaryTimeline entries={preparedHistory} />
         </div>
       </section>
     </div>
