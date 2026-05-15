@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
 import { Spinner } from '../../components/Spinner.jsx';
-
-function formatMoney(n) {
-  if (n === null || n === undefined) return '—';
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
-}
+import { formatINR } from '../../utils/format.js';
 
 export function SalaryViewPage() {
   const [loading, setLoading] = useState(true);
@@ -53,7 +49,7 @@ export function SalaryViewPage() {
       <dl className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
           <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Current salary</dt>
-          <dd className="mt-2 text-2xl font-semibold text-slate-900">{formatMoney(salary.currentSalary)}</dd>
+          <dd className="mt-2 text-2xl font-semibold text-slate-900">{formatINR(salary.currentSalary)}</dd>
         </div>
         <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
           <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Effective date</dt>

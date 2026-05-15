@@ -4,10 +4,7 @@ import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
 import { Spinner } from '../../components/Spinner.jsx';
 import { StatusBadge } from '../../components/StatusBadge.jsx';
-
-function formatMoney(n) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
-}
+import { formatINR } from '../../utils/format.js';
 
 export function AdminReviewCyclesPage() {
   const [loading, setLoading] = useState(true);
@@ -92,7 +89,7 @@ export function AdminReviewCyclesPage() {
                       <td className="py-3 pr-4">
                         <StatusBadge status={c.status} />
                       </td>
-                      <td className="py-3 pr-4">{formatMoney(c.totalBudget)}</td>
+                      <td className="py-3 pr-4">{formatINR(c.totalBudget)}</td>
                       <td className="py-3 pr-4">{new Date(c.effectiveDate).toLocaleDateString()}</td>
                       <td className="py-3 pr-4">{c.createdBy?.name || '—'}</td>
                       <td className="py-3 pr-4 text-right">

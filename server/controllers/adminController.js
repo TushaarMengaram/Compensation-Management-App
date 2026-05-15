@@ -6,10 +6,19 @@ import { ReviewCycle } from '../models/ReviewCycle.js';
 import { asyncHandler, sendError } from '../utils/http.js';
 import { sumApprovedCostsForCycle, sumPendingCostsForCycle } from '../services/budgetService.js';
 import { closeReviewCycle } from '../services/cycleCloseService.js';
+import { isEffectiveDateInPast } from '../utils/dates.js';
 
 export const createCycleValidators = [
   body('title').trim().notEmpty().withMessage('Cycle title is required'),
-  body('effectiveDate').isISO8601().withMessage('effectiveDate must be a valid date'),
+  body('effectiveDate')
+    .isISO8601()
+    .withMessage('effectiveDate must be a valid date')
+    .custom((value) => {
+      if (isEffectiveDateInPast(value)) {
+        throw new Error('Effective date cannot be before today');
+      }
+      return true;
+    }),
   body('totalBudget').isFloat({ gt: 0 }).withMessage('totalBudget must be greater than 0'),
 ];
 
@@ -157,6 +166,10 @@ export const createReviewCycle = asyncHandler(async (req, res) => {
     return sendError(res, 400, 'Validation failed', errors.array());
   }
   const { title, effectiveDate, totalBudget } = req.body;
+
+  if (isEffectiveDateInPast(effectiveDate)) {
+    return sendError(res, 400, 'Effective date cannot be before today');
+  }
 
   const cycle = await ReviewCycle.create({
     title,

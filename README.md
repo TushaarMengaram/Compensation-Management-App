@@ -1,73 +1,113 @@
 # Compensation Management MVP
 
-Full-stack MVP for managing employee salary review cycles, proposals, approvals with budget enforcement, and immutable salary history.
+Full-stack MVP for salary review cycles: admins create proposals, a **different** admin approves or rejects, budget is enforced on approval, and closing a cycle applies approved changes with **append-only** salary history.
 
-## Tech stack
+---
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| Frontend | React + Vite + Tailwind + React Router + Axios | Fast dev experience, easy styling, simple data fetching |
-| Backend | Express + Mongoose | Minimal ceremony, flexible JSON APIs |
-| Database | MongoDB | Document model fits cycles, proposals, and audit rows |
-| Auth | JWT + bcrypt | Stateless sessions suitable for local/demo deployments |
-
-## Architecture
-
-- **Server** (`server/`): REST API under `/api`, JWT bearer auth, role middleware (`employee` vs `admin`), domain rules enforced in controllers + small services (`budgetService`, `cycleCloseService`).
-- **Client** (`client/`): SPA with protected routes by role, Axios instance with interceptors, toast notifications, dashboard-style layouts.
-
-### Core workflow
-
-1. Admin creates an **Open** review cycle with a **positive** total budget.
-2. Admin creates **Proposed** salary proposals (proposed salary must exceed the snapshot current salary; justification required).
-3. A **different** admin approves or rejects (self-approval blocked on API and UI).
-4. **Approve** checks `sum(approved costs in cycle) + this proposal cost <= totalBudget`.
-5. When every proposal is **Approved** or **Rejected**, admin **closes** the cycle: approved rows update `SalaryRecord`, append-only `SalaryHistory` entries are created, cycle becomes **Closed**. Close is idempotent if already closed.
-
-## Local setup
+## Setup & run (under 10 minutes)
 
 ### Prerequisites
 
-- Node.js 18+ (for native `watch` / ESM)
-- MongoDB running locally (e.g. `mongodb://127.0.0.1:27017/compensation_mvp`)
+| Requirement | Notes |
+|-------------|--------|
+| **Node.js 18+** | For native ESM and `npm` scripts |
+| **MongoDB** | Local instance, e.g. `mongodb://127.0.0.1:27017/compensation_mvp` |
+| **~5 minutes** | Clone, install, seed, start both apps |
 
-### Backend
+### 1. Clone and install
+
+```bash
+git clone <repository-url>
+cd Paltech_project
+
+npm run install:all   # installs server/ and client/ dependencies
+npm install           # root devDependency: concurrently (optional, for npm run dev)
+```
+
+### 2. Configure environment
+
+**Server** — copy and edit:
 
 ```bash
 cd server
 cp .env.example .env
-# Edit .env: MONGO_URI, JWT_SECRET, ADMIN_* and optional SECOND_ADMIN_*
-npm install
+```
+
+Minimum in `server/.env`:
+
+```env
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/compensation_mvp
+JWT_SECRET=change_this_to_a_long_random_string_for_local_dev
+CLIENT_ORIGIN=http://localhost:5173
+```
+
+Admin seed credentials (used by `npm run seed`):
+
+```env
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=Admin123!
+ADMIN_NAME=Primary Admin
+
+SECOND_ADMIN_EMAIL=admin2@example.com
+SECOND_ADMIN_PASSWORD=Admin123!
+SECOND_ADMIN_NAME=Secondary Admin
+```
+
+**Client** — copy and align API port with `PORT`:
+
+```bash
+cd ../client
+cp .env.example .env
+```
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+If you change `PORT` in `server/.env`, update `VITE_API_URL` to match.
+
+### 3. Start MongoDB
+
+Ensure MongoDB is running locally (Windows service, Docker, or `mongod`). The API exits with a clear error if the connection fails.
+
+### 4. Seed and run
+
+**Option A — two terminals (recommended first time)**
+
+```bash
+# Terminal 1
+cd server
 npm run seed
 npm run dev
-```
 
-API base: `http://localhost:5000/api` (or your `PORT`).
-
-### Frontend
-
-```bash
+# Terminal 2
 cd client
-cp .env.example .env
-npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`.
-
-### Run both apps (optional)
-
-From the repository root:
+**Option B — single command from repo root**
 
 ```bash
-npm run install:all
-npm install
+cd server && npm run seed && cd ..
 npm run dev
 ```
 
-`install:all` installs dependencies in `server/` and `client/`. The root `npm install` adds `concurrently` so `npm run dev` can start the API and Vite together.
+| App | URL |
+|-----|-----|
+| Frontend | http://localhost:5173 |
+| API | http://localhost:5000/api |
+| Health | http://localhost:5000/api/health |
 
-### Demo accounts (after `npm run seed`)
+### 5. Quick smoke test
+
+1. Open http://localhost:5173 → **Login** as `admin@example.com` / `Admin123!`.
+2. **Review cycles** → confirm seeded closed cycle exists.
+3. **Proposals** → create a proposal in an **Open** cycle (or create a cycle first).
+4. Log out → log in as `admin2@example.com` → **Approve** the proposal (not your own).
+5. Log in as `jane.doe@example.com` / `Employee123!` → view salary and history.
+
+### Demo accounts (after seed)
 
 | Role | Email | Password |
 |------|-------|----------|
@@ -77,61 +117,176 @@ npm run dev
 | Employee | `john.smith@example.com` | `Employee123!` |
 | Employee | `alex.lee@example.com` | `Employee123!` |
 
-Seeded employees have realistic salaries and **salary history** from a closed demo cycle (`FY2024 Annual Review (Demo)`). New self-registrations still start at **$0** with empty history.
+Seeded employees have non-zero salaries and history from a closed demo cycle. **Self-registration** creates employees only (see Assumptions).
 
-### Demo flow
+### Troubleshooting
 
-1. Sign in as a seeded employee (e.g. `jane.doe@example.com`) to view salary and history, **or** register a new employee (starts at **$0**).
-2. Sign in as **admin** (`ADMIN_EMAIL` / `ADMIN_PASSWORD` from seed).
-3. Optionally sign in as **second admin** (`SECOND_ADMIN_*`) to approve proposals the first admin created.
-4. In **Employees**, note the employee id contextually (table lists staff).
-5. **Create cycle** with a realistic budget.
-6. Under **Proposals**, create a proposal: pick employee, cycle, proposed salary **greater than current**, add justification.
-7. Switch to the **other** admin account → **Approve** or **Reject**.
-8. After all proposals are decided, **Review cycles** → **Close cycle**.
-9. Sign back in as the employee → **Salary** and **Salary history** reflect applied changes.
+- **`ECONNREFUSED` / MongoDB** — start MongoDB; confirm `MONGO_URI` in `server/.env` (not a stale Atlas URL).
+- **CORS / network errors** — `CLIENT_ORIGIN` must match the Vite URL; `VITE_API_URL` must match `PORT`.
+- **Windows + OneDrive** — if `.env` does not apply, confirm the file on disk matches what the server reads.
 
-## Environment variables
+---
+
+## Tech stack & rationale
+
+| Layer | Choice | Why |
+|-------|--------|-----|
+| **Frontend** | React 18, Vite, Tailwind CSS, React Router, Axios | Fast local dev, simple SPA routing, utility-first styling without a heavy component library |
+| **Backend** | Node.js, Express | Minimal boilerplate for a hackathon-sized REST API |
+| **ODM** | Mongoose | Schema validation, middleware (e.g. blocking salary-history mutations), familiar MongoDB mapping |
+| **Database** | **MongoDB** | Documents map naturally to review cycles, proposals, and audit rows; flexible nested refs; easy local install for reviewers |
+| **Auth** | **JWT** (Bearer) + **bcryptjs** (cost factor **10**) | Stateless API suitable for a demo/MVP; passwords never stored in plain text; role carried in token payload |
+| **Validation** | express-validator | Request validation on auth and write endpoints |
+| **UI feedback** | react-hot-toast | Lightweight success/error toasts |
+
+### Storage layer (MongoDB)
+
+- **Users**, **SalaryRecord** (current salary per employee), **ReviewCycle**, **Proposal**, **SalaryHistory** (immutable audit trail).
+- References use ObjectIds; proposals snapshot `currentSalarySnapshot`, `costOfChange`, and `employeeNameSnapshot` for stable sorting and audit.
+- **Salary history** has no update/delete HTTP routes; Mongoose pre-hooks on `SalaryHistory` block updates/deletes as defense-in-depth.
+- Cycle **close** applies approved proposals sequentially (see Trade-offs — no multi-document transaction on standalone MongoDB).
+
+### Auth & password hashing
+
+- **Register** (`POST /api/auth/register`): employee role only; password hashed with `bcrypt.hash(password, 10)`; creates `SalaryRecord` at **₹0**.
+- **Login** (`POST /api/auth/login`): `bcrypt.compare` against stored hash; returns JWT signed with `JWT_SECRET`.
+- **Protected routes**: `Authorization: Bearer <token>`; `authenticate` middleware loads user; `requireRole('admin')` gates admin/proposal/cycle routes.
+- **Admins are not self-registered** — created only via `npm run seed` from `ADMIN_*` / `SECOND_ADMIN_*` env vars (see Assumptions).
+
+---
+
+## Architectural overview
+
+```
+Paltech_project/
+├── server/                 # Express API
+│   ├── index.js            # App entry, CORS, routes, error handler
+│   ├── config/database.js  # Mongoose connection
+│   ├── models/             # User, SalaryRecord, ReviewCycle, Proposal, SalaryHistory
+│   ├── routes/             # authRoutes, employeeRoutes, adminRoutes, proposalRoutes
+│   ├── controllers/        # HTTP handlers + validation orchestration
+│   ├── middleware/         # authenticate (JWT), requireRole
+│   ├── services/           # budgetService, cycleCloseService (domain workflows)
+│   ├── utils/              # token, http helpers, date validation
+│   └── scripts/seed.js     # Admins, demo employees, closed cycle + history
+├── client/                 # Vite React SPA
+│   ├── src/App.jsx         # Routes (public + role-protected)
+│   ├── src/context/        # AuthContext (user, token, login/logout)
+│   ├── src/services/api.js # Axios instance + interceptors
+│   ├── src/layouts/        # AdminLayout, EmployeeLayout (sidebar nav)
+│   ├── src/pages/          # admin/* and employee/* screens
+│   ├── src/components/     # Spinner, StatusBadge, ProtectedRoute
+│   └── src/utils/format.js # INR formatting, date helpers
+└── package.json            # Root: concurrently dev script
+```
+
+### Request flow
+
+1. **Employee**: `/api/employees/me/salary`, `/api/employees/me/salary-history` — own data only.
+2. **Admin**: `/api/admin/*` — employees list/detail, cycles CRUD, close cycle.
+3. **Proposals**: `/api/proposals` — list/create; approve/reject/patch/delete with rules in `proposalController.js`.
+4. **Client**: `ProtectedRoute` sends employees vs admins to the correct layout; Axios attaches JWT from `localStorage`.
+
+### Core business workflow
+
+1. Admin creates an **Open** review cycle (budget > 0, effective date today or future).
+2. Admin creates **Proposed** rows (proposed salary > snapshot; justification required).
+3. **Another** admin approves/rejects (self-action blocked with 403 + UI message).
+4. **Approve** checks cycle budget via `budgetService`.
+5. When all proposals are **Approved** or **Rejected**, admin **closes** cycle → `cycleCloseService` updates salaries and writes `SalaryHistory` (idempotent if already closed).
+
+### Key files
+
+| File | Responsibility |
+|------|----------------|
+| `server/controllers/proposalController.js` | CRUD, approve/reject, creator-only edit/delete |
+| `server/services/cycleCloseService.js` | Close cycle, apply salaries, pending-count messaging |
+| `server/services/budgetService.js` | Sum approved costs vs `totalBudget` |
+| `server/controllers/adminController.js` | Cycles, employees, salary/history by employee id |
+| `client/src/pages/admin/AdminProposalsPage.jsx` | Create, filter, edit, delete, approve/reject UI |
+| `client/src/pages/admin/AdminEmployeeDetailPage.jsx` | Admin view of employee salary + history |
+
+---
+
+## How AI tools were used
+
+| Item | Detail |
+|------|--------|
+| **Assistant** | **Cursor** (AI coding agent in the IDE), including Composer-style multi-file edits |
+| **AI-generated / scaffolded** | Initial repo layout (server + client), Mongoose models, route wiring, seed script, most admin/employee pages, Tailwind layouts, README drafts |
+| **AI-assisted** | Business rules (self-approval block, budget check, cycle close, creator-only proposal edit), INR formatting, sidebar grouping, effective-date validation, proposal edit modal, bug fixes (CORS, env/MongoDB, JSX typos) |
+| **Hand-written / human-directed** | Product decisions (two peer admins, INR currency, hackathon scope), acceptance-criteria gaps (employee filter, pagination, edit UI), review feedback (“proper buttons”, README structure) |
+| **Reviewed & edited** | All merged code was iterated in chat: rejected or fixed incorrect `motion` JSX typos, Atlas vs local `MONGO_URI` mismatches, duplicate dashboard buttons |
+| **Worth flagging** | AI occasionally introduced invalid JSX tag names (`motion` instead of `div`); always run `npm run build` in `client/` after large UI edits. AI suggested patterns were checked against acceptance criteria before treating features as done |
+
+---
+
+## Assumptions
+
+| Topic | Assumption |
+|-------|------------|
+| **Scope** | Single organization; English UI; INR display (`en-IN`) with amounts stored as numbers (no currency field in DB) |
+| **Roles** | One role per user: `employee` or `admin`; admins use admin UI only in this MVP |
+| **Administrator creation** | **No public admin signup.** Admins are created by `server/scripts/seed.js` reading `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` and optional `SECOND_ADMIN_*`. Re-running seed is idempotent (skips existing emails). Both admins are **peers** — no primary/secondary hierarchy |
+| **New employee salary** | `POST /api/auth/register` creates `SalaryRecord` with **`currentSalary: 0`** and `effectiveDate: now` |
+| **Seeded employees** | Jane / John / Alex get salaries **₹58,000 / ₹72,000 / ₹91,000** and a pre-closed demo cycle with history |
+| **Admins’ salary records** | Seed gives admins a salary record at **0** (admins are not compensated in this demo) |
+| **Segregation of duties** | Proposer cannot approve or reject their own proposal (API + UI) |
+| **Environment** | Local dev: MongoDB on localhost, JWT secret in `.env`, no HTTPS requirement |
+| **Users** | Trusted internal admins; no rate limiting, MFA, or email verification |
+
+---
+
+## Trade-offs (6-hour budget)
+
+| Deprioritized | Reason |
+|---------------|--------|
+| **MongoDB transactions** on cycle close | Standalone local MongoDB; sequential writes kept compatible; production would use replica set + `withTransaction` |
+| **Refresh tokens / session revocation** | JWT-only keeps auth simple for demo |
+| **Automated tests** | Manual demo flow prioritized over Playwright/Jest setup time |
+| **Fine-grained RBAC** | Single `admin` role sufficient for two-admin approval demo |
+| **Public API hardening** | `/api/health` and auth routes are public; no API gateway or WAF |
+| **Edit/delete audit trail** | Proposals can be edited/deleted by creator while `Proposed`; no separate audit log table |
+| **Email notifications** | Out of scope |
+| **Pagination on all lists** | Proposals paginate; some admin lists use a high `limit` for simplicity |
+| **Production deployment** | No Docker/K8s/CI in repo — local run only |
+
+---
+
+## Future work
+
+- **Transactions** on cycle close and salary apply (replica set + Mongoose sessions)
+- **Refresh tokens**, logout-all-devices, password reset
+- **Roles**: HR vs Finance approvers, delegation
+- **Audit log** for admin actions (beyond immutable salary history)
+- **E2E tests** (Playwright) for propose → second-admin approve → close → employee history
+- **Currency metadata** in DB if multi-region; bonus/equity line items
+- **Bulk import** of employees and opening balances
+- **Stricter AC2** option: protect `/api/health` or move behind auth if required by policy
+- **CI/CD**, Docker Compose (Mongo + API + client), staging environment
+
+---
+
+## Environment reference
 
 **`server/.env`**
 
 | Variable | Purpose |
 |----------|---------|
-| `PORT` | API port (default 5000) |
+| `PORT` | API port (default `5000`) |
 | `MONGO_URI` | Mongo connection string |
-| `JWT_SECRET` | Signing secret for JWTs |
-| `CLIENT_ORIGIN` | CORS origin for the Vite dev server |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` | Primary seeded admin |
-| `SECOND_ADMIN_*` | Optional second admin for approval demos |
+| `JWT_SECRET` | JWT signing secret |
+| `CLIENT_ORIGIN` | CORS origin (Vite dev server) |
+| `ADMIN_*` / `SECOND_ADMIN_*` | Seeded admin accounts |
 
 **`client/.env`**
 
 | Variable | Purpose |
 |----------|---------|
-| `VITE_API_URL` | Base URL for Axios (e.g. `http://localhost:5000/api`) |
+| `VITE_API_URL` | Axios base URL (e.g. `http://localhost:5000/api`) |
 
-## Security notes (MVP scope)
+---
 
-- **Employees** only hit `/api/employees/*` (salary + own history). Admin/proposal/cycle routes require `admin`.
-- **Self-approval** is rejected with `403` on both approve and reject.
-- **Salary history** has no update/delete HTTP routes; Mongoose middleware blocks mutating deletes/updates at the model layer as defense-in-depth.
-- Registration creates **employee** accounts only; admins come from **seed** (avoid public admin self-signup).
+## License & disclaimer
 
-## Assumptions and tradeoffs
-
-- **MongoDB transactions**: Cycle close performs sequential writes without a multi-document transaction for maximum compatibility with a standalone local MongoDB. For production, use a replica set and `withTransaction` around close + apply.
-- **Sorting proposals by employee name** uses denormalized `employeeNameSnapshot` for simple indexed sorts.
-- **Currency** is displayed as USD in the UI; amounts are stored as numbers without currency metadata.
-- **Single role per user**; admins use admin routes exclusively in this MVP UI.
-
-## Future improvements
-
-- Refresh tokens / server-side session revocation
-- Fine-grained permissions (e.g. HR vs Finance approvers)
-- Multi-currency, bonus components, and proration rules
-- Audit log for admin actions beyond salary history
-- E2E tests (Playwright) for the critical approval + close path
-
-## AI usage disclosure
-
-This repository was implemented with assistance from an AI coding agent (Cursor), including scaffolding, business-rule enforcement, UI layout, and documentation. All code should be reviewed, tested, and adapted to your organization’s policies before production use.
+Built as a hackathon / MVP demo. Review security and compliance before any production use.

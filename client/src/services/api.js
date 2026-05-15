@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { formatINR } from '../utils/format.js';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -42,7 +43,7 @@ export function getErrorMessage(err, fallback = 'Something went wrong') {
       }
       if (d.totalBudget !== undefined && d.alreadyApproved !== undefined && d.thisProposalCost !== undefined) {
         const remaining = d.totalBudget - d.alreadyApproved;
-        return `${data.message} Budget remaining: ${formatUsd(remaining)}; this change costs ${formatUsd(d.thisProposalCost)}.`;
+        return `${data.message} Budget remaining: ${formatINR(remaining)}; this change costs ${formatINR(d.thisProposalCost)}.`;
       }
     }
     return data.message;
@@ -54,6 +55,3 @@ export function getErrorMessage(err, fallback = 'Something went wrong') {
   return fallback;
 }
 
-function formatUsd(n) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
-}

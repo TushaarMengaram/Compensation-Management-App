@@ -3,11 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
 import { Spinner } from '../../components/Spinner.jsx';
-
-function formatMoney(n) {
-  if (n === null || n === undefined) return '—';
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
-}
+import { formatINR } from '../../utils/format.js';
 
 export function AdminEmployeeDetailPage() {
   const { id } = useParams();
@@ -84,7 +80,7 @@ export function AdminEmployeeDetailPage() {
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
               <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Base salary</dt>
-              <dd className="mt-2 text-2xl font-semibold text-slate-900">{formatMoney(salary.currentSalary)}</dd>
+              <dd className="mt-2 text-2xl font-semibold text-slate-900">{formatINR(salary.currentSalary)}</dd>
             </div>
             <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
               <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Effective date</dt>
@@ -126,8 +122,8 @@ export function AdminEmployeeDetailPage() {
                           {row.appliedAt ? new Date(row.appliedAt).toLocaleString() : '—'}
                         </td>
                         <td className="py-3 pr-4">{row.changeType}</td>
-                        <td className="py-3 pr-4">{formatMoney(row.previousSalary)}</td>
-                        <td className="py-3 pr-4 font-medium">{formatMoney(row.newSalary)}</td>
+                        <td className="py-3 pr-4">{formatINR(row.previousSalary)}</td>
+                        <td className="py-3 pr-4 font-medium">{formatINR(row.newSalary)}</td>
                         <td className="py-3 pr-4">
                           {row.effectiveDate ? new Date(row.effectiveDate).toLocaleDateString() : '—'}
                         </td>

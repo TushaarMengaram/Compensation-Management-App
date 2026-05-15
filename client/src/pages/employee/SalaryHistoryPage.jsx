@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
 import { Spinner } from '../../components/Spinner.jsx';
-
-function formatMoney(n) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
-}
+import { formatINR } from '../../utils/format.js';
 
 export function SalaryHistoryPage() {
   const [loading, setLoading] = useState(true);
@@ -65,8 +62,8 @@ export function SalaryHistoryPage() {
                       {row.appliedAt ? new Date(row.appliedAt).toLocaleString() : '—'}
                     </td>
                     <td className="py-3 pr-4">{row.changeType}</td>
-                    <td className="py-3 pr-4">{formatMoney(row.previousSalary)}</td>
-                    <td className="py-3 pr-4 font-medium">{formatMoney(row.newSalary)}</td>
+                    <td className="py-3 pr-4">{formatINR(row.previousSalary)}</td>
+                    <td className="py-3 pr-4 font-medium">{formatINR(row.newSalary)}</td>
                     <td className="py-3 pr-4">
                       {row.effectiveDate ? new Date(row.effectiveDate).toLocaleDateString() : '—'}
                     </td>

@@ -1,12 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
 import { Spinner } from '../../components/Spinner.jsx';
-
-function formatMoney(n) {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
-}
+import { formatINR } from '../../utils/format.js';
 
 export function AdminDashboardPage() {
   const [cycles, setCycles] = useState([]);
@@ -63,25 +59,9 @@ export function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Admin dashboard</h1>
-          <p className="mt-1 text-sm text-slate-600">Budget utilization for a selected review cycle.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            to="/admin/cycles/new"
-            className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-          >
-            New cycle
-          </Link>
-          <Link
-            to="/admin/proposals"
-            className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-          >
-            Manage proposals
-          </Link>
-        </div>
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">Admin dashboard</h1>
+        <p className="mt-1 text-sm text-slate-600">Budget utilization for a selected review cycle.</p>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -98,13 +78,13 @@ export function AdminDashboardPage() {
           {cycles.length === 0 ? <option value="">No cycles yet</option> : null}
           {cycles.map((c) => (
             <option key={c._id} value={c._id}>
-              {c.title} — {c.status} — budget {formatMoney(c.totalBudget)}
+              {c.title} — {c.status} — budget {formatINR(c.totalBudget)}
             </option>
           ))}
         </select>
         {selectedCycle ? (
           <div className="mt-2 text-xs text-slate-500">
-            Effective {new Date(selectedCycle.effectiveDate).toLocaleDateString()} · Status{' '}
+            Effective {new Date(selectedCycle.effectiveDate).toLocaleDateString('en-IN')} · Status{' '}
             <span className="font-medium text-slate-700">{selectedCycle.status}</span>
           </div>
         ) : null}
@@ -122,10 +102,10 @@ export function AdminDashboardPage() {
         </div>
       ) : stats ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Metric title="Total budget" value={formatMoney(stats.totalBudget)} />
-          <Metric title="Approved amount" value={formatMoney(stats.approvedAmount)} />
-          <Metric title="Pending amount" value={formatMoney(stats.pendingAmount)} />
-          <Metric title="Remaining budget" value={formatMoney(stats.remainingBudget)} highlight />
+          <Metric title="Total budget" value={formatINR(stats.totalBudget)} />
+          <Metric title="Approved amount" value={formatINR(stats.approvedAmount)} />
+          <Metric title="Pending amount" value={formatINR(stats.pendingAmount)} />
+          <Metric title="Remaining budget" value={formatINR(stats.remainingBudget)} highlight />
         </div>
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-600 shadow-sm">

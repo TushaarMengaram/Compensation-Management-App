@@ -6,34 +6,53 @@ const linkClass = ({ isActive }) =>
     isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
   }`;
 
+function NavSection({ title, children }) {
+  return (
+    <div className="pt-3 first:pt-0">
+      <div className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+        {title}
+      </div>
+      <div className="space-y-0.5">{children}</div>
+    </div>
+  );
+}
+
 export function AdminLayout() {
   const { user, logout } = useAuth();
   return (
     <div className="min-h-full bg-slate-50">
       <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 lg:px-8">
-        <aside className="hidden w-56 shrink-0 lg:block">
+        <aside className="hidden w-60 shrink-0 lg:block">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-4">
+            <div className="mb-4 border-b border-slate-100 pb-4">
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Administrator</div>
               <div className="mt-1 text-sm font-semibold text-slate-900">{user?.name}</div>
               <div className="text-xs text-slate-500">{user?.email}</div>
             </div>
-            <nav className="space-y-1">
-              <NavLink to="/admin" end className={linkClass}>
-                Dashboard
-              </NavLink>
-              <NavLink to="/admin/employees" className={linkClass}>
-                Employees
-              </NavLink>
-              <NavLink to="/admin/cycles" className={linkClass}>
-                Review cycles
-              </NavLink>
-              <NavLink to="/admin/cycles/new" className={linkClass}>
-                Create cycle
-              </NavLink>
-              <NavLink to="/admin/proposals" className={linkClass}>
-                Proposals
-              </NavLink>
+            <nav>
+              <NavSection title="Overview">
+                <NavLink to="/admin" end className={linkClass}>
+                  Dashboard
+                </NavLink>
+              </NavSection>
+              <NavSection title="People">
+                <NavLink to="/admin/employees" className={linkClass}>
+                  Employees
+                </NavLink>
+              </NavSection>
+              <NavSection title="Review cycles">
+                <NavLink to="/admin/cycles" className={linkClass}>
+                  All cycles
+                </NavLink>
+                <NavLink to="/admin/cycles/new" className={linkClass}>
+                  Create cycle
+                </NavLink>
+              </NavSection>
+              <NavSection title="Compensation">
+                <NavLink to="/admin/proposals" className={linkClass}>
+                  Proposals
+                </NavLink>
+              </NavSection>
             </nav>
             <button
               type="button"
@@ -58,19 +77,19 @@ export function AdminLayout() {
               Log out
             </button>
           </header>
-          <div className="lg:hidden mb-4 flex flex-wrap gap-2">
+          <div className="mb-4 flex flex-wrap gap-2 lg:hidden">
             <NavLink
               to="/admin"
               end
               className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700"
             >
-              Home
+              Dashboard
             </NavLink>
             <NavLink
               to="/admin/employees"
               className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700"
             >
-              Staff
+              Employees
             </NavLink>
             <NavLink
               to="/admin/cycles"

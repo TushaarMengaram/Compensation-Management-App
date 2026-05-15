@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
+import { todayDateInputValue, isDateBeforeToday } from '../../utils/format.js';
 
 export function AdminCreateCyclePage() {
   const navigate = useNavigate();
@@ -9,9 +10,14 @@ export function AdminCreateCyclePage() {
   const [effectiveDate, setEffectiveDate] = useState('');
   const [totalBudget, setTotalBudget] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const minDate = todayDateInputValue();
 
   async function onSubmit(e) {
     e.preventDefault();
+    if (isDateBeforeToday(effectiveDate)) {
+      toast.error('Effective date must be today or a future date');
+      return;
+    }
     setSubmitting(true);
     try {
       await api.post('/admin/review-cycles', {
@@ -31,7 +37,9 @@ export function AdminCreateCyclePage() {
   return (
     <div className="mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
       <h1 className="text-xl font-semibold text-slate-900">Create review cycle</h1>
-      <p className="mt-1 text-sm text-slate-600">Budget must be greater than zero.</p>
+      <p className="mt-1 text-sm text-slate-600">
+        Budget must be greater than zero. Effective date must be today or later.
+      </p>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <div>
           <label className="text-sm font-medium text-slate-700" htmlFor="title">
@@ -53,20 +61,22 @@ export function AdminCreateCyclePage() {
             id="effectiveDate"
             type="date"
             required
+            min={minDate}
             value={effectiveDate}
             onChange={(e) => setEffectiveDate(e.target.value)}
             className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none ring-slate-900/10 focus:ring-2"
           />
+          <p className="mt-1 text-xs text-slate-500">Earliest allowed: {minDate}</p>
         </div>
         <div>
           <label className="text-sm font-medium text-slate-700" htmlFor="totalBudget">
-            Total budget (USD)
+            Total budget (INR)
           </label>
           <input
             id="totalBudget"
             type="number"
-            min="0.01"
-            step="0.01"
+            min="1"
+            step="1"
             required
             value={totalBudget}
             onChange={(e) => setTotalBudget(e.target.value)}

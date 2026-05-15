@@ -3,11 +3,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
 import { Spinner } from '../../components/Spinner.jsx';
-
-function formatMoney(n) {
-  if (n === null || n === undefined) return '—';
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
-}
+import { formatINR } from '../../utils/format.js';
 
 export function AdminEmployeesPage() {
   const [loading, setLoading] = useState(true);
@@ -100,7 +96,7 @@ export function AdminEmployeesPage() {
                     <tr key={e.id} className="text-slate-800">
                       <td className="py-3 pr-4 font-medium">{e.name}</td>
                       <td className="py-3 pr-4">{e.email}</td>
-                      <td className="py-3 pr-4">{formatMoney(e.currentSalary)}</td>
+                      <td className="py-3 pr-4">{formatINR(e.currentSalary)}</td>
                       <td className="py-3 pr-4">
                         {e.salaryEffectiveDate
                           ? new Date(e.salaryEffectiveDate).toLocaleDateString()
