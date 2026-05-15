@@ -15,6 +15,7 @@ import { AdminEmployeeDetailPage } from './pages/admin/AdminEmployeeDetailPage.j
 import { AdminReviewCyclesPage } from './pages/admin/AdminReviewCyclesPage.jsx';
 import { AdminCreateCyclePage } from './pages/admin/AdminCreateCyclePage.jsx';
 import { AdminProposalsPage } from './pages/admin/AdminProposalsPage.jsx';
+import { AdminCreateProposalPage } from './pages/admin/AdminCreateProposalPage.jsx';
 
 function HomeRedirect() {
   const { isAuthenticated, user } = useAuth();
@@ -25,7 +26,12 @@ function HomeRedirect() {
 export default function App() {
   return (
     <>
-      <Toaster position="top-center" />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          className: 'dark:!bg-slate-800 dark:!text-slate-100 dark:!border-slate-700',
+        }}
+      />
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<LoginPage />} />
@@ -58,6 +64,7 @@ export default function App() {
           <Route path="cycles" element={<AdminReviewCyclesPage />} />
           <Route path="cycles/new" element={<AdminCreateCyclePage />} />
           <Route path="proposals" element={<AdminProposalsPage />} />
+          <Route path="proposals/new" element={<AdminCreateProposalPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

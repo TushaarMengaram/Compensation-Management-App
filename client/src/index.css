@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 html,
 body,
 #root {
@@ -7,5 +9,135 @@ body,
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+}
+
+@layer components {
+  .ui-shell {
+    @apply flex min-h-dvh w-full flex-col bg-slate-50 dark:bg-slate-950;
+  }
+
+  .ui-app-row {
+    @apply flex min-h-0 w-full flex-1;
+  }
+
+  .ui-sidebar-aside {
+    @apply hidden h-dvh w-64 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:flex xl:w-72;
+  }
+
+  .ui-sidebar-inner {
+    @apply flex h-full flex-col p-4;
+  }
+
+  .ui-sidebar-nav {
+    @apply min-h-0 flex-1 overflow-y-auto py-2;
+  }
+
+  .ui-sidebar-footer {
+    @apply mt-4 shrink-0 border-t border-slate-200 pt-4 dark:border-slate-700;
+  }
+
+  .ui-main {
+    @apply flex min-h-0 min-w-0 flex-1 flex-col;
+  }
+
+  .ui-page {
+    @apply flex min-h-0 w-full flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8;
+  }
+
+  .ui-page-fill {
+    @apply flex min-h-0 flex-1 flex-col gap-6;
+  }
+
+  .ui-panel {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900;
+  }
+
+  .ui-panel-header {
+    @apply shrink-0 border-b border-slate-200 px-6 py-5 dark:border-slate-700;
+  }
+
+  .ui-panel-toolbar {
+    @apply shrink-0 border-b border-slate-200 px-6 py-4 dark:border-slate-700;
+  }
+
+  .ui-panel-body {
+    @apply flex min-h-0 flex-1 flex-col p-6;
+  }
+
+  .ui-panel-scroll {
+    @apply min-h-0 flex-1 overflow-auto;
+  }
+
+  .ui-panel-footer {
+    @apply mt-auto shrink-0 border-t border-slate-200 pt-4 dark:border-slate-700;
+  }
+
+  .ui-card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900;
+  }
+
+  .ui-card-pad {
+    @apply rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900;
+  }
+
+  .ui-heading {
+    @apply text-2xl font-semibold text-slate-900 dark:text-slate-100;
+  }
+
+  .ui-subheading {
+    @apply text-sm font-semibold text-slate-900 dark:text-slate-100;
+  }
+
+  .ui-muted {
+    @apply text-sm text-slate-600 dark:text-slate-400;
+  }
+
+  .ui-label {
+    @apply text-sm font-medium text-slate-700 dark:text-slate-300;
+  }
+
+  .ui-caption {
+    @apply text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400;
+  }
+
+  .ui-input {
+    @apply w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-slate-900/10 focus:ring-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-100/10;
+  }
+
+  .ui-btn-primary {
+    @apply rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200;
+  }
+
+  .ui-btn-secondary {
+    @apply rounded-md border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800;
+  }
+
+  .ui-table-head {
+    @apply border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400;
+  }
+
+  .ui-table-row {
+    @apply text-slate-800 dark:text-slate-200;
+  }
+
+  .ui-divide {
+    @apply divide-y divide-slate-100 dark:divide-slate-800;
+  }
+
+  .ui-sidebar {
+    @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900;
+  }
+
+  .ui-nav-active {
+    @apply block rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white dark:bg-slate-100 dark:text-slate-900;
+  }
+
+  .ui-nav-idle {
+    @apply block rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800;
+  }
+
+  .ui-chip {
+    @apply rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200;
+  }
 }

@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { PaginationBar } from '../../components/PaginationBar.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
 import { StatusBadge } from '../../components/StatusBadge.jsx';
 import { formatINR } from '../../utils/format.js';
-
-const CHANGE_TYPES = ['Salary Increase', 'Promotion', 'Market Adjustment'];
-const STATUSES = ['Proposed', 'Approved', 'Rejected'];
+import { CHANGE_TYPES, PROPOSAL_STATUSES } from '../../constants/proposals.js';
 
 export function AdminProposalsPage() {
   const { user } = useAuth();
@@ -23,19 +22,12 @@ export function AdminProposalsPage() {
   const [sort, setSort] = useState('createdAt');
   const [order, setOrder] = useState('desc');
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
 
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-
-  const [createEmployee, setCreateEmployee] = useState('');
-  const [createCycle, setCreateCycle] = useState('');
-  const [createType, setCreateType] = useState(CHANGE_TYPES[0]);
-  const [createSalary, setCreateSalary] = useState('');
-  const [createJustification, setCreateJustification] = useState('');
-  const [creating, setCreating] = useState(false);
 
   const [decision, setDecision] = useState(null);
   const [decisionNote, setDecisionNote] = useState('');
@@ -58,10 +50,8 @@ export function AdminProposalsPage() {
     const open = cs.find((c) => c.status === 'Open');
     if (open) {
       setCycleId((prev) => prev || open._id);
-      setCreateCycle((prev) => prev || open._id);
     } else if (cs[0]) {
       setCycleId((prev) => prev || cs[0]._id);
-      setCreateCycle((prev) => prev || cs[0]._id);
     }
   }, []);
 
@@ -104,39 +94,7 @@ export function AdminProposalsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [cycleId, employeeId, status, changeType, sort, order]);
-
-  const firstEmployeeId = useMemo(() => employees[0]?.id || '', [employees]);
-
-  useEffect(() => {
-    if (!createEmployee && firstEmployeeId) setCreateEmployee(firstEmployeeId);
-  }, [createEmployee, firstEmployeeId]);
-
-  async function createProposal(e) {
-    e.preventDefault();
-    if (!createEmployee || !createCycle) {
-      toast.error('Select employee and cycle');
-      return;
-    }
-    setCreating(true);
-    try {
-      await api.post('/proposals', {
-        employee: createEmployee,
-        cycle: createCycle,
-        changeType: createType,
-        proposedNewSalary: Number(createSalary),
-        justification: createJustification.trim(),
-      });
-      toast.success('Proposal created');
-      setCreateSalary('');
-      setCreateJustification('');
-      await loadProposals();
-    } catch (err) {
-      toast.error(getErrorMessage(err, 'Could not create proposal'));
-    } finally {
-      setCreating(false);
-    }
-  }
+  }, [cycleId, employeeId, status, changeType, sort, order, limit]);
 
   async function deleteProposal(id) {
     if (!window.confirm('Delete this proposal?')) return;
@@ -211,104 +169,24 @@ export function AdminProposalsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Proposal management</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Create proposals, filter the list, and approve or reject as a different admin than the proposer.
+    <div className="ui-page-fill">
+      <div className="shrink-0">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Proposal management</h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          Filter proposals, approve or reject as a different admin than the proposer, and edit your own pending rows.
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">Create proposal</h2>
-        <form className="mt-4 grid gap-4 lg:grid-cols-2" onSubmit={createProposal}>
+      <div className="ui-panel min-h-0 flex-1">
+        <div className="shrink-0 border-b border-slate-200 p-6 dark:border-slate-700">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Employee</label>
-            <select
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
-              value={createEmployee}
-              onChange={(e) => setCreateEmployee(e.target.value)}
-              required
-            >
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name} ({emp.email})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Review cycle</label>
-            <select
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
-              value={createCycle}
-              onChange={(e) => setCreateCycle(e.target.value)}
-              required
-            >
-              {cycles.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.title} — {c.status}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Change type</label>
-            <select
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
-              value={createType}
-              onChange={(e) => setCreateType(e.target.value)}
-            >
-              {CHANGE_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Proposed new salary</label>
-            <input
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
-              type="number"
-              min="0"
-              step="1"
-              required
-              value={createSalary}
-              onChange={(e) => setCreateSalary(e.target.value)}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Justification</label>
-            <textarea
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
-              rows={3}
-              required
-              value={createJustification}
-              onChange={(e) => setCreateJustification(e.target.value)}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <button
-              type="submit"
-              disabled={creating}
-              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
-            >
-              {creating ? 'Creating…' : 'Create proposal'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">Proposals</h2>
-            <p className="mt-1 text-xs text-slate-600">{total} matching rows</p>
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Proposals</h2>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{total} matching rows</p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <select
-              className="rounded-md border border-slate-200 px-2 py-2 text-sm"
+              className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-2 text-sm"
               value={cycleId}
               onChange={(e) => setCycleId(e.target.value)}
             >
@@ -320,7 +198,7 @@ export function AdminProposalsPage() {
               ))}
             </select>
             <select
-              className="rounded-md border border-slate-200 px-2 py-2 text-sm"
+              className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-2 text-sm"
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
             >
@@ -332,19 +210,19 @@ export function AdminProposalsPage() {
               ))}
             </select>
             <select
-              className="rounded-md border border-slate-200 px-2 py-2 text-sm"
+              className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-2 text-sm"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
               <option value="">All statuses</option>
-              {STATUSES.map((s) => (
+              {PROPOSAL_STATUSES.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
               ))}
             </select>
             <select
-              className="rounded-md border border-slate-200 px-2 py-2 text-sm"
+              className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-2 text-sm"
               value={changeType}
               onChange={(e) => setChangeType(e.target.value)}
             >
@@ -356,7 +234,7 @@ export function AdminProposalsPage() {
               ))}
             </select>
             <select
-              className="rounded-md border border-slate-200 px-2 py-2 text-sm"
+              className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-2 text-sm"
               value={sort}
               onChange={(e) => setSort(e.target.value)}
             >
@@ -365,7 +243,7 @@ export function AdminProposalsPage() {
               <option value="employeeName">Sort: employee name</option>
             </select>
             <select
-              className="rounded-md border border-slate-200 px-2 py-2 text-sm"
+              className="rounded-md border border-slate-200 dark:border-slate-700 px-2 py-2 text-sm"
               value={order}
               onChange={(e) => setOrder(e.target.value)}
             >
@@ -374,18 +252,20 @@ export function AdminProposalsPage() {
             </select>
           </div>
         </div>
+        </div>
 
-        <div className="mt-4 overflow-x-auto">
+        <div className="ui-panel-body">
+          <div className="ui-panel-scroll">
           {loading ? (
             <div className="flex items-center gap-3 py-10">
               <Spinner />
-              <div className="text-sm text-slate-600">Loading proposals…</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400">Loading proposals…</div>
             </div>
           ) : rows.length === 0 ? (
-            <div className="py-10 text-center text-sm text-slate-600">No proposals match your filters.</div>
+            <div className="py-10 text-center text-sm text-slate-600 dark:text-slate-400">No proposals match your filters.</div>
           ) : (
             <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+              <thead className="border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 <tr>
                   <th className="py-2 pr-4">Employee</th>
                   <th className="py-2 pr-4">Type</th>
@@ -398,17 +278,17 @@ export function AdminProposalsPage() {
                   <th className="py-2 pr-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {rows.map((p) => {
                   const isSelf =
                     String(p.proposedBy?._id || p.proposedBy || '') === String(myId || '');
                   const isCreator = isSelf;
                   const canDecide = p.status === 'Proposed' && p.cycle?.status === 'Open';
                   return (
-                    <tr key={p._id} className="text-slate-800">
+                    <tr key={p._id} className="text-slate-800 dark:text-slate-200">
                       <td className="py-3 pr-4">
                         <div className="font-medium">{p.employee?.name}</div>
-                        <div className="text-xs text-slate-500">{p.employee?.email}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{p.employee?.email}</div>
                       </td>
                       <td className="py-3 pr-4">{p.changeType}</td>
                       <td className="py-3 pr-4">{formatINR(p.currentSalarySnapshot)}</td>
@@ -419,7 +299,7 @@ export function AdminProposalsPage() {
                       </td>
                       <td className="py-3 pr-4">
                         <div className="text-sm">{p.proposedBy?.name}</div>
-                        <div className="text-xs text-slate-500">{p.proposedBy?.email}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{p.proposedBy?.email}</div>
                       </td>
                       <td className="py-3 pr-4 whitespace-nowrap">
                         {p.createdAt ? new Date(p.createdAt).toLocaleString() : '—'}
@@ -447,7 +327,7 @@ export function AdminProposalsPage() {
                         ) : null}
                         {canDecide && isSelf ? (
                           <p
-                            className="ml-auto max-w-[14rem] text-right text-xs leading-snug text-amber-800"
+                            className="ml-auto max-w-[14rem] text-right text-xs leading-snug text-amber-800 dark:text-amber-200"
                             title="Segregation of duties: the proposer cannot approve or reject their own proposal."
                           >
                             You proposed this — another administrator must approve or reject.
@@ -488,46 +368,38 @@ export function AdminProposalsPage() {
           )}
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-          <div>
-            Page {page} of {totalPages}
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() => setPage((x) => Math.max(1, x - 1))}
-              className="rounded-md border border-slate-200 px-3 py-1 font-medium hover:bg-slate-50 disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              disabled={page >= totalPages}
-              onClick={() => setPage((x) => x + 1)}
-              className="rounded-md border border-slate-200 px-3 py-1 font-medium hover:bg-slate-50 disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
+          {!loading && rows.length > 0 ? (
+            <PaginationBar
+              className="ui-panel-footer"
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              limit={limit}
+              onLimitChange={setLimit}
+              disabledPrevious={page <= 1}
+              disabledNext={page >= totalPages}
+              onPrevious={() => setPage((x) => Math.max(1, x - 1))}
+              onNext={() => setPage((x) => x + 1)}
+            />
+          ) : null}
         </div>
       </div>
 
       {editProposal ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 sm:items-center">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-            <div className="text-lg font-semibold text-slate-900">Edit proposal</div>
-            <p className="mt-2 text-sm text-slate-600">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 dark:bg-black/60 p-4 sm:items-center">
+          <div className="w-full max-w-lg rounded-xl bg-white dark:bg-slate-900 p-6 shadow-xl">
+            <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">Edit proposal</div>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
               {editProposal.employee?.name} · snapshot {formatINR(editProposal.currentSalarySnapshot)}
             </p>
             <form className="mt-4 space-y-4" onSubmit={submitEdit}>
               <div>
-                <label className="text-sm font-medium text-slate-700" htmlFor="edit-type">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="edit-type">
                   Change type
                 </label>
                 <select
                   id="edit-type"
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                  className="ui-input mt-1 dark:border-slate-700 px-3 py-2 text-sm"
                   value={editType}
                   onChange={(e) => setEditType(e.target.value)}
                 >
@@ -539,7 +411,7 @@ export function AdminProposalsPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700" htmlFor="edit-salary">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="edit-salary">
                   Proposed new salary (INR)
                 </label>
                 <input
@@ -548,21 +420,21 @@ export function AdminProposalsPage() {
                   min={editProposal.currentSalarySnapshot + 1}
                   step="1"
                   required
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                  className="ui-input mt-1 dark:border-slate-700 px-3 py-2 text-sm"
                   value={editSalary}
                   onChange={(e) => setEditSalary(e.target.value)}
                 />
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   Must be greater than {formatINR(editProposal.currentSalarySnapshot)}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700" htmlFor="edit-justification">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="edit-justification">
                   Justification
                 </label>
                 <textarea
                   id="edit-justification"
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+                  className="ui-input mt-1 dark:border-slate-700 px-3 py-2 text-sm"
                   rows={3}
                   required
                   value={editJustification}
@@ -572,7 +444,7 @@ export function AdminProposalsPage() {
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  className="rounded-md border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+                  className="rounded-md border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
                   onClick={closeEdit}
                   disabled={editBusy}
                 >
@@ -592,21 +464,21 @@ export function AdminProposalsPage() {
       ) : null}
 
       {decision ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 sm:items-center">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
-            <div className="text-lg font-semibold text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 dark:bg-black/60 p-4 sm:items-center">
+          <div className="w-full max-w-lg rounded-xl bg-white dark:bg-slate-900 p-6 shadow-xl">
+            <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {decision.type === 'approve' ? 'Approve proposal' : 'Reject proposal'}
             </div>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
               {decision.proposal.employee?.name} · {formatINR(decision.proposal.currentSalarySnapshot)} →{' '}
               {formatINR(decision.proposal.proposedNewSalary)}
             </p>
-            <label className="mt-4 block text-sm font-medium text-slate-700" htmlFor="note">
+            <label className="mt-4 block text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="note">
               Decision note (optional)
             </label>
             <textarea
               id="note"
-              className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
+              className="ui-input mt-1 dark:border-slate-700 px-3 py-2 text-sm"
               rows={3}
               value={decisionNote}
               onChange={(e) => setDecisionNote(e.target.value)}
@@ -614,7 +486,7 @@ export function AdminProposalsPage() {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
-                className="rounded-md border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+                className="rounded-md border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
                 onClick={() => {
                   setDecision(null);
                   setDecisionNote('');

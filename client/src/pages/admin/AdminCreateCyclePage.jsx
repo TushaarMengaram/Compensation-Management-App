@@ -35,14 +35,14 @@ export function AdminCreateCyclePage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h1 className="text-xl font-semibold text-slate-900">Create review cycle</h1>
-      <p className="mt-1 text-sm text-slate-600">
+    <div className="mx-auto max-w-2xl ui-card rounded-2xl p-8">
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Create review cycle</h1>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
         Budget must be greater than zero. Effective date must be today or later.
       </p>
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <div>
-          <label className="text-sm font-medium text-slate-700" htmlFor="title">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="title">
             Title
           </label>
           <input
@@ -50,11 +50,11 @@ export function AdminCreateCyclePage() {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none ring-slate-900/10 focus:ring-2"
+            className="ui-input mt-1 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-slate-900/10 focus:ring-2"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-slate-700" htmlFor="effectiveDate">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="effectiveDate">
             Effective date
           </label>
           <input
@@ -64,12 +64,12 @@ export function AdminCreateCyclePage() {
             min={minDate}
             value={effectiveDate}
             onChange={(e) => setEffectiveDate(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none ring-slate-900/10 focus:ring-2"
+            className="ui-input mt-1 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-slate-900/10 focus:ring-2"
           />
-          <p className="mt-1 text-xs text-slate-500">Earliest allowed: {minDate}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Earliest allowed: {minDate}</p>
         </div>
         <div>
-          <label className="text-sm font-medium text-slate-700" htmlFor="totalBudget">
+          <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="totalBudget">
             Total budget (INR)
           </label>
           <input
@@ -80,7 +80,7 @@ export function AdminCreateCyclePage() {
             required
             value={totalBudget}
             onChange={(e) => setTotalBudget(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm outline-none ring-slate-900/10 focus:ring-2"
+            className="ui-input mt-1 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-slate-900/10 focus:ring-2"
           />
         </div>
         <div className="flex gap-3 pt-2">
@@ -94,7 +94,7 @@ export function AdminCreateCyclePage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="rounded-md border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+            className="rounded-md border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             Cancel
           </button>

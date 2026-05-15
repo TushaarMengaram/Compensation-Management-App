@@ -60,17 +60,17 @@ export function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Admin dashboard</h1>
-        <p className="mt-1 text-sm text-slate-600">Budget utilization for a selected review cycle.</p>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Admin dashboard</h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Budget utilization for a selected review cycle.</p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <label className="text-sm font-medium text-slate-700" htmlFor="cycle">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm">
+        <label className="text-sm font-medium text-slate-700 dark:text-slate-300" htmlFor="cycle">
           Review cycle
         </label>
         <select
           id="cycle"
-          className="mt-2 w-full max-w-xl rounded-md border border-slate-200 px-3 py-2 text-sm"
+          className="mt-2 w-full max-w-xl rounded-md border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm"
           value={cycleId}
           onChange={(e) => setCycleId(e.target.value)}
           disabled={loadingCycles || cycles.length === 0}
@@ -83,22 +83,22 @@ export function AdminDashboardPage() {
           ))}
         </select>
         {selectedCycle ? (
-          <div className="mt-2 text-xs text-slate-500">
+          <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             Effective {new Date(selectedCycle.effectiveDate).toLocaleDateString('en-IN')} · Status{' '}
-            <span className="font-medium text-slate-700">{selectedCycle.status}</span>
+            <span className="font-medium text-slate-700 dark:text-slate-300">{selectedCycle.status}</span>
           </div>
         ) : null}
       </div>
 
       {loadingCycles ? (
-        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="flex items-center gap-3 ui-card rounded-2xl p-8">
           <Spinner />
-          <div className="text-sm text-slate-600">Loading cycles…</div>
+          <div className="text-sm text-slate-600 dark:text-slate-400">Loading cycles…</div>
         </div>
       ) : statsLoading ? (
-        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="flex items-center gap-3 ui-card rounded-2xl p-8">
           <Spinner />
-          <div className="text-sm text-slate-600">Loading metrics…</div>
+          <div className="text-sm text-slate-600 dark:text-slate-400">Loading metrics…</div>
         </div>
       ) : stats ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -108,7 +108,7 @@ export function AdminDashboardPage() {
           <Metric title="Remaining budget" value={formatINR(stats.remainingBudget)} highlight />
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-600 shadow-sm">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-sm text-slate-600 dark:text-slate-400 shadow-sm">
           Select a cycle to view metrics.
         </div>
       )}
@@ -120,11 +120,11 @@ function Metric({ title, value, highlight }) {
   return (
     <div
       className={`rounded-xl border p-5 shadow-sm ${
-        highlight ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'
+        highlight ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
       }`}
     >
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</div>
-      <div className="mt-2 text-2xl font-semibold text-slate-900">{value}</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{title}</div>
+      <div className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{value}</div>
     </div>
   );
 }

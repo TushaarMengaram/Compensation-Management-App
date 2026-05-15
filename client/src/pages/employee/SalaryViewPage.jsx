@@ -27,33 +27,33 @@ export function SalaryViewPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="flex items-center gap-3 ui-card rounded-2xl p-8">
         <Spinner />
-        <div className="text-sm text-slate-600">Loading salary…</div>
+        <div className="text-sm text-slate-600 dark:text-slate-400">Loading salary…</div>
       </div>
     );
   }
 
   if (!salary) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-8 text-sm text-slate-600 shadow-sm">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-sm text-slate-600 dark:text-slate-400 shadow-sm">
         No salary record found yet.
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h1 className="text-xl font-semibold text-slate-900">My salary</h1>
-      <p className="mt-1 text-sm text-slate-600">This reflects your current on-record compensation.</p>
+    <div className="ui-card rounded-2xl p-8">
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">My salary</h1>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">This reflects your current on-record compensation.</p>
       <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Current salary</dt>
-          <dd className="mt-2 text-2xl font-semibold text-slate-900">{formatINR(salary.currentSalary)}</dd>
+        <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Current salary</dt>
+          <dd className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{formatINR(salary.currentSalary)}</dd>
         </div>
-        <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Effective date</dt>
-          <dd className="mt-2 text-sm font-medium text-slate-900">
+        <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Effective date</dt>
+          <dd className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">
             {salary.effectiveDate ? new Date(salary.effectiveDate).toLocaleDateString() : '—'}
           </dd>
         </div>

@@ -49,8 +49,8 @@ export function AdminReviewCyclesPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Review cycles</h1>
-          <p className="mt-1 text-sm text-slate-600">Cycles must have all proposals decided before closing.</p>
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Review cycles</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Cycles must have all proposals decided before closing.</p>
         </div>
         <Link
           to="/admin/cycles/new"
@@ -60,19 +60,19 @@ export function AdminReviewCyclesPage() {
         </Link>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
         <div className="p-6">
           {loading ? (
             <div className="flex items-center gap-3 py-10">
               <Spinner />
-              <div className="text-sm text-slate-600">Loading…</div>
+              <div className="text-sm text-slate-600 dark:text-slate-400">Loading…</div>
             </div>
           ) : cycles.length === 0 ? (
-            <div className="py-10 text-center text-sm text-slate-600">No review cycles yet.</div>
+            <div className="py-10 text-center text-sm text-slate-600 dark:text-slate-400">No review cycles yet.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                <thead className="border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   <tr>
                     <th className="py-2 pr-4">Title</th>
                     <th className="py-2 pr-4">Status</th>
@@ -82,9 +82,9 @@ export function AdminReviewCyclesPage() {
                     <th className="py-2 pr-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {cycles.map((c) => (
-                    <tr key={c._id} className="text-slate-800">
+                    <tr key={c._id} className="text-slate-800 dark:text-slate-200">
                       <td className="py-3 pr-4 font-medium">{c.title}</td>
                       <td className="py-3 pr-4">
                         <StatusBadge status={c.status} />
@@ -98,12 +98,12 @@ export function AdminReviewCyclesPage() {
                             type="button"
                             disabled={busyId === c._id}
                             onClick={() => closeCycle(c._id)}
-                            className="rounded-md border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-900 hover:bg-slate-50 disabled:opacity-50"
+                            className="rounded-md border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
                           >
                             {busyId === c._id ? 'Closing…' : 'Close cycle'}
                           </button>
                         ) : (
-                          <span className="text-xs text-slate-500">Closed</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">Closed</span>
                         )}
                       </td>
                     </tr>

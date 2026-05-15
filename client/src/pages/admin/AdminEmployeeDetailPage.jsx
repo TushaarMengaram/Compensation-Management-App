@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api, getErrorMessage } from '../../services/api.js';
+import { PaginationBar } from '../../components/PaginationBar.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
 import { formatINR } from '../../utils/format.js';
 
@@ -12,6 +13,7 @@ export function AdminEmployeeDetailPage() {
   const [salary, setSalary] = useState(null);
   const [history, setHistory] = useState({ items: [], page: 1, totalPages: 1, total: 0 });
   const [historyPage, setHistoryPage] = useState(1);
+  const [historyLimit, setHistoryLimit] = useState(10);
 
   const loadSalary = useCallback(async () => {
     const { data } = await api.get(`/admin/employees/${id}/salary`);
@@ -21,11 +23,15 @@ export function AdminEmployeeDetailPage() {
 
   const loadHistory = useCallback(async () => {
     const { data } = await api.get(`/admin/employees/${id}/salary-history`, {
-      params: { page: historyPage, limit: 20 },
+      params: { page: historyPage, limit: historyLimit },
     });
     setEmployee(data.employee);
     setHistory(data);
-  }, [id, historyPage]);
+  }, [id, historyPage, historyLimit]);
+
+  useEffect(() => {
+    setHistoryPage(1);
+  }, [historyLimit]);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,18 +52,18 @@ export function AdminEmployeeDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-10 shadow-sm">
+      <div className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 shadow-sm">
         <Spinner />
-        <div className="text-sm text-slate-600">Loading employee…</div>
+        <div className="text-sm text-slate-600 dark:text-slate-400">Loading employee…</div>
       </div>
     );
   }
 
   if (!employee) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-10 text-sm text-slate-600 shadow-sm">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-sm text-slate-600 dark:text-slate-400 shadow-sm">
         Employee not found.{' '}
-        <Link to="/admin/employees" className="font-medium text-slate-900 underline">
+        <Link to="/admin/employees" className="font-medium text-slate-900 dark:text-slate-100 underline">
           Back to directory
         </Link>
       </div>
@@ -65,48 +71,48 @@ export function AdminEmployeeDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link to="/admin/employees" className="text-sm font-medium text-slate-600 hover:text-slate-900">
+    <div className="ui-page-fill">
+      <div className="shrink-0">
+        <Link to="/admin/employees" className="text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
           ← Employees
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900">{employee.name}</h1>
-        <p className="text-sm text-slate-600">{employee.email}</p>
+        <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{employee.name}</h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400">{employee.email}</p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">Current salary record</h2>
+      <div className="ui-card-pad shrink-0">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Current salary record</h2>
         {salary ? (
           <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Base salary</dt>
-              <dd className="mt-2 text-2xl font-semibold text-slate-900">{formatINR(salary.currentSalary)}</dd>
+            <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Base salary</dt>
+              <dd className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{formatINR(salary.currentSalary)}</dd>
             </div>
-            <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Effective date</dt>
-              <dd className="mt-2 text-sm font-medium text-slate-900">
+            <div className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Effective date</dt>
+              <dd className="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">
                 {salary.effectiveDate ? new Date(salary.effectiveDate).toLocaleDateString() : '—'}
               </dd>
             </div>
           </dl>
         ) : (
-          <p className="mt-3 text-sm text-slate-600">No salary record on file.</p>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">No salary record on file.</p>
         )}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-5">
-          <h2 className="text-sm font-semibold text-slate-900">Salary change history</h2>
-          <p className="mt-1 text-xs text-slate-600">{history.total} entries (immutable audit log)</p>
+      <div className="ui-panel min-h-0 flex-1">
+        <div className="ui-panel-header">
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Salary change history</h2>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{history.total} entries (immutable audit log)</p>
         </div>
-        <div className="p-6">
+        <div className="ui-panel-body">
           {history.items.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-600">No history entries yet.</p>
+            <p className="py-6 text-center text-sm text-slate-600 dark:text-slate-400">No history entries yet.</p>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="ui-panel-scroll">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                  <thead className="border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     <tr>
                       <th className="py-2 pr-4">Applied</th>
                       <th className="py-2 pr-4">Type</th>
@@ -115,9 +121,9 @@ export function AdminEmployeeDetailPage() {
                       <th className="py-2 pr-4">Effective</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {history.items.map((row) => (
-                      <tr key={row._id} className="text-slate-800">
+                      <tr key={row._id} className="text-slate-800 dark:text-slate-200">
                         <td className="py-3 pr-4 whitespace-nowrap">
                           {row.appliedAt ? new Date(row.appliedAt).toLocaleString() : '—'}
                         </td>
@@ -132,29 +138,18 @@ export function AdminEmployeeDetailPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-                <span>
-                  Page {history.page} of {history.totalPages}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    disabled={historyPage <= 1}
-                    onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
-                    className="rounded-md border border-slate-200 px-3 py-1 font-medium hover:bg-slate-50 disabled:opacity-40"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    type="button"
-                    disabled={historyPage >= history.totalPages}
-                    onClick={() => setHistoryPage((p) => p + 1)}
-                    className="rounded-md border border-slate-200 px-3 py-1 font-medium hover:bg-slate-50 disabled:opacity-40"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+              <PaginationBar
+                className="ui-panel-footer"
+                page={history.page ?? historyPage}
+                totalPages={history.totalPages}
+                total={history.total}
+                limit={historyLimit}
+                onLimitChange={setHistoryLimit}
+                disabledPrevious={historyPage <= 1}
+                disabledNext={historyPage >= history.totalPages}
+                onPrevious={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                onNext={() => setHistoryPage((p) => p + 1)}
+              />
             </>
           )}
         </div>
