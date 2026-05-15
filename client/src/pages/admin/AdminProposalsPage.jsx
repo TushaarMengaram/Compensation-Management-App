@@ -370,29 +370,35 @@ export function AdminProposalsPage() {
                             Delete
                           </button>
                         ) : null}
-                        {canDecide ? (
+                        {canDecide && isSelf ? (
+                          <p
+                            className="ml-auto max-w-[14rem] text-right text-xs leading-snug text-amber-800"
+                            title="Segregation of duties: the proposer cannot approve or reject their own proposal."
+                          >
+                            You proposed this — another administrator must approve or reject.
+                          </p>
+                        ) : null}
+                        {canDecide && !isSelf ? (
                           <>
                             <button
                               type="button"
-                              disabled={isSelf}
-                              title={isSelf ? 'You cannot approve your own proposal' : 'Approve'}
+                              title="Approve this proposal"
                               onClick={() => {
                                 setDecision({ type: 'approve', proposal: p });
                                 setDecisionNote('');
                               }}
-                              className="mr-2 rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="mr-2 rounded-md bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
                             >
                               Approve
                             </button>
                             <button
                               type="button"
-                              disabled={isSelf}
-                              title={isSelf ? 'You cannot reject your own proposal' : 'Reject'}
+                              title="Reject this proposal"
                               onClick={() => {
                                 setDecision({ type: 'reject', proposal: p });
                                 setDecisionNote('');
                               }}
-                              className="rounded-md bg-rose-600 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="rounded-md bg-rose-600 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-700"
                             >
                               Reject
                             </button>

@@ -67,9 +67,21 @@ npm run dev
 
 `install:all` installs dependencies in `server/` and `client/`. The root `npm install` adds `concurrently` so `npm run dev` can start the API and Vite together.
 
+### Demo accounts (after `npm run seed`)
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@example.com` | `Admin123!` |
+| Admin | `admin2@example.com` | `Admin123!` |
+| Employee | `jane.doe@example.com` | `Employee123!` |
+| Employee | `john.smith@example.com` | `Employee123!` |
+| Employee | `alex.lee@example.com` | `Employee123!` |
+
+Seeded employees have realistic salaries and **salary history** from a closed demo cycle (`FY2024 Annual Review (Demo)`). New self-registrations still start at **$0** with empty history.
+
 ### Demo flow
 
-1. Register a new **employee** from `/register` (starts with **$0** salary record).
+1. Sign in as a seeded employee (e.g. `jane.doe@example.com`) to view salary and history, **or** register a new employee (starts at **$0**).
 2. Sign in as **admin** (`ADMIN_EMAIL` / `ADMIN_PASSWORD` from seed).
 3. Optionally sign in as **second admin** (`SECOND_ADMIN_*`) to approve proposals the first admin created.
 4. In **Employees**, note the employee id contextually (table lists staff).
