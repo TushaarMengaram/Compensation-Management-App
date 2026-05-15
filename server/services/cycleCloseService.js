@@ -17,8 +17,12 @@ export async function closeReviewCycle(cycleId) {
   const proposals = await Proposal.find({ cycle: cycle._id });
   const pending = proposals.filter((p) => p.status === 'Proposed');
   if (pending.length > 0) {
-    const err = new Error('Cannot close cycle while proposals are still pending');
+    const count = pending.length;
+    const err = new Error(
+      `Cannot close cycle: ${count} proposal${count === 1 ? '' : 's'} still awaiting a decision.`
+    );
     err.statusCode = 409;
+    err.details = { pendingCount: count };
     throw err;
   }
 

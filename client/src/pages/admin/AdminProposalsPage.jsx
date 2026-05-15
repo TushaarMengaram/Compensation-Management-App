@@ -20,6 +20,7 @@ export function AdminProposalsPage() {
   const [cycles, setCycles] = useState([]);
 
   const [cycleId, setCycleId] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
   const [status, setStatus] = useState('');
   const [changeType, setChangeType] = useState('');
   const [sort, setSort] = useState('createdAt');
@@ -44,7 +45,10 @@ export function AdminProposalsPage() {
   const [decisionBusy, setDecisionBusy] = useState(false);
 
   const loadMeta = useCallback(async () => {
-    const [eRes, cRes] = await Promise.all([api.get('/admin/employees'), api.get('/admin/review-cycles')]);
+    const [eRes, cRes] = await Promise.all([
+      api.get('/admin/employees', { params: { limit: 100, page: 1 } }),
+      api.get('/admin/review-cycles'),
+    ]);
     setEmployees(eRes.data.employees || []);
     const cs = cRes.data.cycles || [];
     setCycles(cs);
@@ -63,6 +67,7 @@ export function AdminProposalsPage() {
     try {
       const params = { page, limit, sort, order };
       if (cycleId) params.cycle = cycleId;
+      if (employeeId) params.employee = employeeId;
       if (status) params.status = status;
       if (changeType) params.changeType = changeType;
       const { data } = await api.get('/proposals', { params });
@@ -74,7 +79,7 @@ export function AdminProposalsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, cycleId, status, changeType, sort, order]);
+  }, [page, limit, cycleId, employeeId, status, changeType, sort, order]);
 
   useEffect(() => {
     let cancelled = false;
@@ -96,7 +101,7 @@ export function AdminProposalsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [cycleId, status, changeType, sort, order]);
+  }, [cycleId, employeeId, status, changeType, sort, order]);
 
   const firstEmployeeId = useMemo(() => employees[0]?.id || '', [employees]);
 
@@ -255,7 +260,7 @@ export function AdminProposalsPage() {
             <h2 className="text-sm font-semibold text-slate-900">Proposals</h2>
             <p className="mt-1 text-xs text-slate-600">{total} matching rows</p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <select
               className="rounded-md border border-slate-200 px-2 py-2 text-sm"
               value={cycleId}
@@ -265,6 +270,18 @@ export function AdminProposalsPage() {
               {cycles.map((c) => (
                 <option key={c._id} value={c._id}>
                   {c.title}
+                </option>
+              ))}
+            </select>
+            <select
+              className="rounded-md border border-slate-200 px-2 py-2 text-sm"
+              value={employeeId}
+              onChange={(e) => setEmployeeId(e.target.value)}
+            >
+              <option value="">All employees</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name}
                 </option>
               ))}
             </select>
@@ -339,6 +356,7 @@ export function AdminProposalsPage() {
                 {rows.map((p) => {
                   const isSelf =
                     String(p.proposedBy?._id || p.proposedBy || '') === String(myId || '');
+                  const isCreator = isSelf;
                   const canDecide = p.status === 'Proposed' && p.cycle?.status === 'Open';
                   return (
                     <tr key={p._id} className="text-slate-800">
@@ -361,7 +379,7 @@ export function AdminProposalsPage() {
                         {p.createdAt ? new Date(p.createdAt).toLocaleString() : '—'}
                       </td>
                       <td className="py-3 pr-4 text-right whitespace-nowrap">
-                        {p.status === 'Proposed' ? (
+                        {p.status === 'Proposed' && isCreator ? (
                           <button
                             type="button"
                             className="mr-2 text-xs font-semibold text-slate-700 underline"

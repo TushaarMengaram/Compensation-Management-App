@@ -21,4 +21,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+userSchema.index({ role: 1, name: 1 });
+userSchema.index({ role: 1, email: 1 });
+
 export const User = mongoose.model('User', userSchema);

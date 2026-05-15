@@ -12,6 +12,10 @@ async function getEmployeeCurrentSalary(employeeId) {
   return record?.currentSalary ?? 0;
 }
 
+function isProposalOwner(proposal, userId) {
+  return proposal.proposedBy.toString() === userId.toString();
+}
+
 export const createProposalValidators = [
   body('employee').isMongoId().withMessage('Valid employee id is required'),
   body('cycle').isMongoId().withMessage('Valid cycle id is required'),
@@ -34,6 +38,7 @@ export const listProposalQueryValidators = [
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
   query('cycle').optional().isMongoId(),
+  query('employee').optional().isMongoId(),
   query('status').optional().isIn(PROPOSAL_STATUSES_LIST),
   query('changeType').optional().isIn(CHANGE_TYPES_LIST),
   query('sort').optional().isIn(['createdAt', 'cost', 'employeeName']),
@@ -107,6 +112,9 @@ export const updateProposal = asyncHandler(async (req, res) => {
   if (proposal.cycle.status !== 'Open') {
     return sendError(res, 409, 'Cannot update proposals on a closed cycle');
   }
+  if (!isProposalOwner(proposal, req.user._id)) {
+    return sendError(res, 403, 'Only the administrator who created this proposal can edit it');
+  }
 
   const { changeType, proposedNewSalary, justification } = req.body;
   if (changeType !== undefined) proposal.changeType = changeType;
@@ -153,6 +161,9 @@ export const deleteProposal = asyncHandler(async (req, res) => {
   }
   if (proposal.cycle.status !== 'Open') {
     return sendError(res, 409, 'Cannot delete proposals on a closed cycle');
+  }
+  if (!isProposalOwner(proposal, req.user._id)) {
+    return sendError(res, 403, 'Only the administrator who created this proposal can delete it');
   }
 
   await Proposal.deleteOne({ _id: proposal._id });
@@ -254,6 +265,7 @@ export const listProposals = asyncHandler(async (req, res) => {
 
   const filter = {};
   if (req.query.cycle) filter.cycle = new mongoose.Types.ObjectId(req.query.cycle);
+  if (req.query.employee) filter.employee = new mongoose.Types.ObjectId(req.query.employee);
   if (req.query.status) filter.status = req.query.status;
   if (req.query.changeType) filter.changeType = req.query.changeType;
 

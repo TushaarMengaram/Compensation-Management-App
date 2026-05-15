@@ -34,10 +34,26 @@ api.interceptors.response.use(
 export function getErrorMessage(err, fallback = 'Something went wrong') {
   const data = err.response?.data;
   if (!data) return fallback;
-  if (typeof data.message === 'string') return data.message;
+  if (typeof data.message === 'string') {
+    const d = data.details;
+    if (d && typeof d === 'object' && !Array.isArray(d)) {
+      if (d.pendingCount !== undefined) {
+        return data.message;
+      }
+      if (d.totalBudget !== undefined && d.alreadyApproved !== undefined && d.thisProposalCost !== undefined) {
+        const remaining = d.totalBudget - d.alreadyApproved;
+        return `${data.message} Budget remaining: ${formatUsd(remaining)}; this change costs ${formatUsd(d.thisProposalCost)}.`;
+      }
+    }
+    return data.message;
+  }
   if (Array.isArray(data.details)) {
     const first = data.details[0];
     if (first?.msg) return first.msg;
   }
   return fallback;
+}
+
+function formatUsd(n) {
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
 }

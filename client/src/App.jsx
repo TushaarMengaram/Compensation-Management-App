@@ -11,6 +11,7 @@ import { SalaryViewPage } from './pages/employee/SalaryViewPage.jsx';
 import { SalaryHistoryPage } from './pages/employee/SalaryHistoryPage.jsx';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage.jsx';
 import { AdminEmployeesPage } from './pages/admin/AdminEmployeesPage.jsx';
+import { AdminEmployeeDetailPage } from './pages/admin/AdminEmployeeDetailPage.jsx';
 import { AdminReviewCyclesPage } from './pages/admin/AdminReviewCyclesPage.jsx';
 import { AdminCreateCyclePage } from './pages/admin/AdminCreateCyclePage.jsx';
 import { AdminProposalsPage } from './pages/admin/AdminProposalsPage.jsx';
@@ -53,6 +54,7 @@ export default function App() {
         >
           <Route index element={<AdminDashboardPage />} />
           <Route path="employees" element={<AdminEmployeesPage />} />
+          <Route path="employees/:id" element={<AdminEmployeeDetailPage />} />
           <Route path="cycles" element={<AdminReviewCyclesPage />} />
           <Route path="cycles/new" element={<AdminCreateCyclePage />} />
           <Route path="proposals" element={<AdminProposalsPage />} />
